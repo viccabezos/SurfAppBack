@@ -1,0 +1,11 @@
+GET  http://localhost:5000/user/register 
+
+###
+
+POST http://localhost:5000/user/register 
+
+{
+    "username": "helloTest2",
+    "password": "beauty",
+    "role": "admin",
+}
