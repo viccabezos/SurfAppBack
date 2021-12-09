@@ -36,21 +36,33 @@ passport.use(
 //authenticated local strategy using username and password
 
 passport.use(
-  new localStrategy(
-    // {
-    //   usernameField: "email",
-    //   passwordField: "password",
-    // },
-    function (username, password, done) {
-      // check if user exist
-      User.findOne({ username }, (err, user) => {
-        // something went wrong with db
-        if (err) return done(err);
-        // if no user exist
-        if (!user) return done(null, false);
-        //found user, check if password is correct
-        user.comparePassword(password, done);
-      });
-    }
-  )
+  new localStrategy({ usernameField: "email" }, function (
+    email,
+    password,
+    done
+  ) {
+    // check if user exist
+    User.findOne({ email: email }, (err, user) => {
+      // something went wrong with db
+      // if (err)
+      //   return done(err, {
+      //     message: { msgBody: "Error has occured", msgError: "true" },
+      //   });
+      // // if no user exist
+      // if (!user)
+      //   return done(null, false, {
+      //     message: { msgBody: `email ${email}not found`, msgError: "true" },
+      //   });
+      // if there is an error
+      if (err) {
+        return done(err);
+      }
+      // if user doesn't exist
+      if (!user) {
+        return done(null, false, { message: `email ${email} not found` });
+      }
+      //found user, check if password is correct
+      user.comparePassword(password, done);
+    });
+  })
 );

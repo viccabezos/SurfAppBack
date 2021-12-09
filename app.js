@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 require("dotenv").config({ path: "./config.env" });
 const port = process.env.PORT || 5000;
 const uri = process.env.ATLAS_URI;
+// const passport = require("passport");
 
 app.use(cookieParser());
 app.use(express.json());
@@ -16,6 +17,15 @@ mongoose.connect(
     console.log("successfully connected to database");
   }
 );
+
+const userRouter = require("./routes/User");
+app.use("/", userRouter);
+// app.use(passport.initialize());
+// app.use(passport.session());
+
+app.listen(port, () => {
+  console.log("express server started");
+});
 
 //test if mongoose is working , no needed we can delete
 // const User = require("./models/user");
@@ -31,10 +41,3 @@ mongoose.connect(
 //   if (err) console.log(err, "error ligne 32");
 //   console.log(document);
 // });
-
-const userRouter = require("./routes/User");
-app.use("/user", userRouter);
-
-app.listen(port, () => {
-  console.log("express server started");
-});

@@ -6,6 +6,15 @@ const User = require("../models/user");
 const Product = require("../models/product");
 const JWT = require("jsonwebtoken");
 userRouter.use(passport.initialize());
+// passport.serializeUser(function (user, done) {
+//   done(null, user.id);
+// });
+
+// passport.deserializeUser(function (id, done) {
+//   User.findById(id, function (err, user) {
+//     done(err, user);
+//   });
+// });
 
 const signToken = (userID) => {
   return JWT.sign(
@@ -19,8 +28,8 @@ const signToken = (userID) => {
 };
 
 userRouter.post("/register", (req, res) => {
-  const { username, password, role } = req.body;
-  User.findOne({ username }, (err, user) => {
+  const { email, password, role, firstName } = req.body;
+  User.findOne({ email }, (err, user) => {
     if (err)
       res
         .status(500)
@@ -31,7 +40,7 @@ userRouter.post("/register", (req, res) => {
         message: { msgBody: "User already exsits", msgError: "true" },
       });
     else {
-      const NewUser = new User({ username, password, role });
+      const NewUser = new User({ email, password, role, firstName });
       NewUser.save((err) => {
         if (err)
           res.status(500).json({
@@ -54,22 +63,26 @@ userRouter.post(
   passport.authenticate("local", { session: false }),
   function (req, res) {
     if (req.isAuthenticated()) {
-      const { _id, username, role } = req.user;
+      const { _id, email, role } = req.user;
       const token = signToken(_id);
       res.cookie("access_token", token, { httpOnly: true, sameSite: true });
       // http Only => on client side cannot touch cookie using js, prevent crosside scripting attacks
       // same site => prevent crosside request attacks
 
-      res.status(200).json({ isAuthenticated: true, user: { username, role } });
+      res.status(200).json({ isAuthenticated: true, user: { email, role } });
     }
   }
 );
 
-userRouter.get("/logout", function (req, res) {
-  req.logout();
-  res.clearCookie("access_token");
-  res.json({ user: { username: " ", role: " " }, success: true });
-});
+userRouter.get(
+  "/logout",
+  passport.authenticate("jwt", { session: false }),
+  function (req, res) {
+    req.logout();
+    res.clearCookie("access_token");
+    res.json({ user: { email: " ", role: " " }, success: true });
+  }
+);
 
 userRouter.post(
   "/newProduct",
@@ -109,11 +122,9 @@ userRouter.get(
       .populate("products")
       .exec((err, document) => {
         if (err)
-          res
-            .status(500)
-            .json({
-              message: { msgBody: "Error has ocurred", msgError: true },
-            });
+          res.status(500).json({
+            message: { msgBody: "Error has ocurred", msgError: true },
+          });
         else {
           res
             .status(200)

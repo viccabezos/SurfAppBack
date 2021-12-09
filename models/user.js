@@ -2,11 +2,16 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema({
-  username: {
+  firstName: {
     type: String,
     required: true,
     min: 6,
     max: 15,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
   },
   password: {
     type: String,
@@ -37,7 +42,7 @@ UserSchema.methods.comparePassword = function (password, cb) {
   bcrypt.compare(password, this.password, (err, isMatch) => {
     if (err) return cb(err);
     else {
-      if (!isMatch) return cb(null, isMatch);
+      if (!isMatch) return cb(null, isMatch, { msg: "invalid password" });
       return cb(null, this);
     }
   });
